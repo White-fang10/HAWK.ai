@@ -1,0 +1,168 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 420" width="500" height="420">
+  <defs>
+    <!-- Outer glow -->
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+    <!-- Cyan glow -->
+    <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feFlood flood-color="#00CFFF" flood-opacity="0.6" result="color"/>
+      <feComposite in="color" in2="blur" operator="in" result="glow"/>
+      <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <!-- Text gradient -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00BFFF;stop-opacity:1"/>
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#00D4FF;stop-opacity:1"/>
+    </linearGradient>
+    <!-- Wing gradient -->
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0080FF;stop-opacity:0.9"/>
+      <stop offset="40%" style="stop-color:#00CFFF;stop-opacity:0.95"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0.85"/>
+    </linearGradient>
+    <!-- Body gradient -->
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0066CC;stop-opacity:0.9"/>
+      <stop offset="50%" style="stop-color:#00AAFF;stop-opacity:0.95"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0.9"/>
+    </linearGradient>
+    <!-- Glow edge -->
+    <linearGradient id="edgeGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00CFFF;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#0055FF;stop-opacity:0.8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ─── LEFT WING FEATHERS (large spread wing going left/up) ─── -->
+  <g filter="url(#cyanGlow)" opacity="0.92">
+    <!-- Primary long wing feather 1 (topmost, sweeping left) -->
+    <path d="M230,180 C180,130 80,90 20,60 C60,80 130,110 180,160 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.5"/>
+    <!-- Primary wing feather 2 -->
+    <path d="M230,185 C175,145 85,115 30,95 C70,115 145,140 195,175 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.2"/>
+    <!-- Primary wing feather 3 -->
+    <path d="M228,195 C175,165 95,145 45,135 C85,150 155,165 205,190 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.0"/>
+    <!-- Secondary wing group (mid spread) -->
+    <path d="M232,200 C195,175 130,160 85,155 C120,165 175,178 215,200 Z"
+          fill="url(#wingGrad)" stroke="#00AAFF" stroke-width="0.9" opacity="0.85"/>
+    <path d="M235,208 C200,188 140,178 100,175 C132,185 185,195 222,210 Z"
+          fill="url(#wingGrad)" stroke="#00AAFF" stroke-width="0.8" opacity="0.8"/>
+    <!-- Inner wing curve (connecting body to forward wing) -->
+    <path d="M240,215 C215,205 175,200 145,200 C170,208 205,212 235,218 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="0.8" opacity="0.75"/>
+  </g>
+
+  <!-- ─── UPPER WING FEATHERS (swept back, above body) ─── -->
+  <g filter="url(#cyanGlow)" opacity="0.88">
+    <path d="M260,155 C275,110 295,75 330,50 C315,75 295,105 278,150 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.4"/>
+    <path d="M270,160 C290,120 315,88 360,65 C340,88 315,115 288,158 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.2"/>
+    <path d="M278,165 C300,130 330,102 375,80 C355,103 328,125 300,162 Z"
+          fill="url(#wingGrad)" stroke="#00AAFF" stroke-width="1.0"/>
+    <path d="M283,172 C308,142 340,118 385,98 C365,118 335,138 308,170 Z"
+          fill="url(#wingGrad)" stroke="#00AAFF" stroke-width="0.9" opacity="0.82"/>
+  </g>
+
+  <!-- ─── HAWK BODY (central mass) ─── -->
+  <g filter="url(#cyanGlow)">
+    <path d="M235,175 C245,165 265,162 285,170 C310,178 325,195 330,215
+             C335,235 325,255 305,265 C285,275 260,272 245,260
+             C228,247 222,228 225,210 C227,198 231,183 235,175 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="2"/>
+    <!-- Body highlight -->
+    <path d="M248,178 C258,170 272,168 282,175 C295,183 302,197 300,212
+             C297,225 285,232 272,228 C258,223 250,210 250,197 Z"
+          fill="rgba(255,255,255,0.35)" stroke="none"/>
+  </g>
+
+  <!-- ─── HAWK HEAD & BEAK ─── -->
+  <g filter="url(#cyanGlow)">
+    <!-- Head -->
+    <ellipse cx="318" cy="195" rx="32" ry="28"
+             fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.8"/>
+    <!-- Head highlight -->
+    <ellipse cx="312" cy="188" rx="14" ry="11"
+             fill="rgba(255,255,255,0.3)" stroke="none"/>
+    <!-- Eye socket -->
+    <ellipse cx="330" cy="190" rx="7" ry="7"
+             fill="#001833" stroke="#00CFFF" stroke-width="1.5"/>
+    <!-- Eye iris -->
+    <ellipse cx="330" cy="190" rx="4" ry="4"
+             fill="#003388" stroke="none"/>
+    <!-- Eye shine -->
+    <circle cx="333" cy="187" r="2" fill="#00EEFF" opacity="0.9"/>
+    <circle cx="332" cy="186" r="0.8" fill="white" opacity="0.7"/>
+    <!-- Upper beak -->
+    <path d="M348,195 C360,188 378,185 390,190 C378,193 362,196 350,202 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.5"/>
+    <!-- Beak hook (tip curves down — hawk beak) -->
+    <path d="M385,190 C393,192 396,198 390,207 C386,200 382,195 385,190 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.3"/>
+    <!-- Lower beak -->
+    <path d="M352,202 C368,202 383,206 388,207 C374,210 358,210 348,206 Z"
+          fill="url(#wingGrad)" stroke="#00AAFF" stroke-width="1.0" opacity="0.85"/>
+    <!-- Feather crest on head -->
+    <path d="M297,175 C300,160 308,148 320,142 C315,155 310,165 305,175 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="1.0" opacity="0.8"/>
+    <path d="M305,172 C310,158 320,146 334,140 C327,153 318,163 312,172 Z"
+          fill="url(#wingGrad)" stroke="#00CFFF" stroke-width="0.9" opacity="0.75"/>
+  </g>
+
+  <!-- ─── TALONS ─── -->
+  <g filter="url(#cyanGlow)" opacity="0.88">
+    <!-- Main talon body -->
+    <path d="M260,270 C268,265 282,262 295,268 C282,272 268,274 260,270 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.5"/>
+    <!-- Talon 1 -->
+    <path d="M265,272 C262,285 265,298 270,310 C268,297 269,283 272,272 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.3"/>
+    <!-- Talon 2 -->
+    <path d="M275,274 C274,288 278,302 285,312 C281,299 279,285 280,274 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.3"/>
+    <!-- Talon 3 -->
+    <path d="M285,272 C286,286 292,298 300,308 C294,296 289,282 288,272 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.3"/>
+    <!-- Talon claw curves (sharp tips) -->
+    <path d="M270,308 C266,318 260,320 256,316 C262,314 268,312 270,308 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.0"/>
+    <path d="M284,310 C282,322 276,325 272,320 C278,318 283,315 284,310 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.0"/>
+    <path d="M299,306 C299,318 294,322 290,318 C295,315 299,311 299,306 Z"
+          fill="url(#bodyGrad)" stroke="#00CFFF" stroke-width="1.0"/>
+  </g>
+
+  <!-- ─── SPEED LINES (motion trails behind the hawk) ─── -->
+  <g opacity="0.5">
+    <path d="M20,60 C60,65 120,70 175,75" stroke="#00CFFF" stroke-width="1.5" fill="none"/>
+    <path d="M30,95 C80,100 140,105 190,108" stroke="#00AAFF" stroke-width="1.0" fill="none"/>
+    <path d="M45,135 C95,138 155,140 200,142" stroke="#00CFFF" stroke-width="0.8" fill="none"/>
+  </g>
+
+  <!-- ─── "HAWK" TEXT ─── -->
+  <text x="165" y="375"
+        font-family="'Arial Black', 'Impact', sans-serif"
+        font-size="62"
+        font-weight="900"
+        letter-spacing="8"
+        fill="url(#textGrad)"
+        filter="url(#outerGlow)"
+        text-anchor="middle">HAWK</text>
+  <!-- Text glow layer -->
+  <text x="165" y="375"
+        font-family="'Arial Black', 'Impact', sans-serif"
+        font-size="62"
+        font-weight="900"
+        letter-spacing="8"
+        fill="none"
+        stroke="#00CFFF"
+        stroke-width="0.5"
+        opacity="0.6"
+        text-anchor="middle">HAWK</text>
+</svg>

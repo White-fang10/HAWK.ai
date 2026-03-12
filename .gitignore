@@ -1,0 +1,32 @@
+# v0 runtime files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+
+# Common ignores
+node_modules/
+.next/
+.env*.local
+.DS_Store
+
+# Python & Backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/*.db
+backend/*.sqlite3
+backend/data/
+backend/vision/__pycache__/
+
+# Large model files (download separately)
+backend/*.pt
+backend/*.onnx
+backend/*.pkl
+backend/*.h5
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+Thumbs.db

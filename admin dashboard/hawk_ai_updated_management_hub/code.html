@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hawk AI - Teacher &amp; Class Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1896c3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111d21",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary rounded-lg p-2 flex items-center justify-center">
+<span class="material-symbols-outlined text-white">monitoring</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">Hawk AI</h1>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-medium">Teachers</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">class</span>
+<span class="font-medium">Classes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Students</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+<span class="font-medium">Admins</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-medium">Reports</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-3 py-2">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-fksay7GeO2M6WGg8kw05Euvm9O1vaOm1hEhzWcR5b2IEbYK7vNMkyXaRX9wGG4UNDvIlXzGj0A1WP7JLdzFvtBNMbLiDE0BS3z9rKhJHpbzAaYZOaTnvvHvtOlgwVe19KqDjQNxZ-kfyr-kmeeipp2zcTUdEp9pQTAwCtBg1VYRFxmVQ4j3wyTXCH565UFRMN8e0yaAjRBvrXiQPQx6DA47tPCWGnV2rwFtLndNCkHPEU6qf0HibTNsOv0MVK6ouj6GK4sy99ss"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Alex Rivera</p>
+<p class="text-xs text-slate-500 truncate">Super Admin</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark scroll-smooth">
+<!-- Header -->
+<header class="sticky top-0 z-30 flex items-center justify-between px-8 py-4 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg focus:ring-2 focus:ring-primary text-sm transition-all" placeholder="Search teachers, classes, or students..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto space-y-8">
+<!-- Page Title -->
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight">Management Hub</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Configure your faculty, academic structure, and administrative controls.</p>
+</div>
+<!-- Section 5: Admin Control Panel -->
+<section>
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-3xl">person_add</span>
+</div>
+<h3 class="text-lg font-bold">Faculty Onboarding</h3>
+<p class="text-sm text-slate-500 mt-2">Add new teachers or department administrators to the Hawk AI system.</p>
+<button class="mt-4 w-full bg-primary hover:bg-primary/90 text-white font-semibold py-2 rounded-lg transition-colors text-sm">Add New Member</button>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="size-12 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4">
+<span class="material-symbols-outlined text-3xl">lock_reset</span>
+</div>
+<h3 class="text-lg font-bold">Security Reset</h3>
+<p class="text-sm text-slate-500 mt-2">Force password resets or unlock faculty accounts after failed login attempts.</p>
+<button class="mt-4 w-full border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold py-2 rounded-lg transition-colors text-sm">Reset Tools</button>
+</div>
+</div>
+</section>
+<!-- Section 3: Teacher Management -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<div>
+<h3 class="text-xl font-bold">Teacher Management</h3>
+<p class="text-sm text-slate-500">Overview of active faculty members and their performance metrics.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined">add</span>
+<span>Add Teacher</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Name</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Class</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Contact</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Attendance</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Performance</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-primary/20 flex items-center justify-center font-bold text-primary">DR</div>
+<div class="font-medium">Dr. Emily Richardson</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Advanced Physics A</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium">emily.r@hawkai.edu</p>
+<p class="text-xs text-slate-500">+1 555-0123</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500" style="width: 98%"></div>
+</div>
+<span class="text-sm font-semibold">98%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">Excellent</span>
+</td>
+<td class="px-6 py-4 text-right space-x-1">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-indigo-500/20 flex items-center justify-center font-bold text-indigo-500">MK</div>
+<div class="font-medium">Marcus Kinsley</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Calculus II</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium">m.kinsley@hawkai.edu</p>
+<p class="text-xs text-slate-500">+1 555-0144</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 82%"></div>
+</div>
+<span class="text-sm font-semibold">82%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Good</span>
+</td>
+<td class="px-6 py-4 text-right space-x-1">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-9 rounded-full bg-amber-500/20 flex items-center justify-center font-bold text-amber-500">SJ</div>
+<div class="font-medium">Sarah Jenkins</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Organic Chemistry</td>
+<td class="px-6 py-4">
+<p class="text-sm font-medium">s.jenkins@hawkai.edu</p>
+<p class="text-xs text-slate-500">+1 555-0199</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1.5 w-16 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-amber-500" style="width: 65%"></div>
+</div>
+<span class="text-sm font-semibold">65%</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Review Required</span>
+</td>
+<td class="px-6 py-4 text-right space-x-1">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px]">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Section 4: Class Management -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800">
+<h3 class="text-xl font-bold">Class Orchestration</h3>
+<p class="text-sm text-slate-500">Manage academic cohorts and instructor assignments.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Class Name</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Instructor</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Enrollment</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Attendance</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="font-bold text-primary">Advanced Physics A</div>
+<span class="text-xs text-slate-400">Section 102 • Room 404</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+<span class="text-sm">Dr. Richardson</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium">28 / 30</td>
+<td class="px-6 py-4">
+<span class="text-sm">94.5%</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary/70 font-semibold text-sm transition-colors">Assign</button>
+<button class="ml-3 text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">edit</span></button>
+<button class="ml-2 text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="font-bold text-primary">Calculus II</div>
+<span class="text-xs text-slate-400">Section 04 • Remote</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+<span class="text-sm">Marcus Kinsley</span>
+</div>
+</td>
+<td class="px-6 py-4 font-medium">45 / 50</td>
+<td class="px-6 py-4">
+<span class="text-sm">88.2%</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                            Active
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary/70 font-semibold text-sm transition-colors">Assign</button>
+<button class="ml-3 text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">edit</span></button>
+<button class="ml-2 text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">delete</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4">
+<div class="font-bold text-primary">Modern Literature</div>
+<span class="text-xs text-slate-400">Section 22 • Room 101</span>
+</td>
+<td class="px-6 py-4 text-slate-400 text-sm italic">Unassigned</td>
+<td class="px-6 py-4 font-medium">12 / 25</td>
+<td class="px-6 py-4">
+<span class="text-sm text-slate-400">--</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+<span class="size-1.5 rounded-full bg-amber-500"></span>
+                                            Pending
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary/70 font-semibold text-sm transition-colors">Assign</button>
+<button class="ml-3 text-slate-400 hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">edit</span></button>
+<button class="ml-2 text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[20px] align-middle">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+<!-- Footer -->
+<footer class="p-8 border-t border-slate-200 dark:border-slate-800 text-center text-slate-500 text-sm">
+                © 2024 Hawk AI Management. All rights reserved.
+            </footer>
+</main>
+</div>
+</body></html>

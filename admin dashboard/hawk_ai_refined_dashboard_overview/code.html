@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hawk AI - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1896c3", // derived from #219EBC
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#023047",
+                        "accent": "#FFB703",
+                        "warning": "#FB8500",
+                        "info": "#8ECAE6",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-item-active { background-color: rgba(24, 150, 195, 0.2); border-left: 4px solid #1896c3; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-slate-900 dark:bg-[#023047] flex flex-col border-r border-slate-200 dark:border-slate-800">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">monitoring</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-xl font-bold tracking-tight text-white">Hawk AI</h1>
+<p class="text-[10px] text-primary uppercase font-bold tracking-widest leading-none">Smart Classroom</p>
+</div>
+</div>
+<nav class="flex-1 px-4 mt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-white sidebar-item-active" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">person_pin_circle</span>
+<span class="text-sm font-medium">Teachers</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Students</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="text-sm font-medium">Classes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Attendance Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<div class="pt-4 mt-4 border-t border-slate-800">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">System Settings</span>
+</a>
+</div>
+</nav>
+<div class="p-4 m-4 bg-primary/10 rounded-xl border border-primary/20">
+<div class="flex items-center justify-between mb-2">
+<span class="text-xs font-semibold text-primary">Storage Limit</span>
+<span class="text-xs text-slate-400">85%</span>
+</div>
+<div class="w-full bg-slate-800 rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-[#011a27]">
+<!-- Top Navbar -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-[#023047] flex items-center justify-between px-8 z-10">
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+<span class="material-symbols-outlined text-xl">search</span>
+</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800/50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary w-64" placeholder="Search data, classrooms..." type="text"/>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-green-500/10 rounded-full border border-green-500/20">
+<div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+<span class="text-[11px] font-bold text-green-500 uppercase tracking-wider">System Online</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-warning rounded-full border-2 border-white dark:border-[#023047]"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold dark:text-white">Dr. Sarah Hawk</p>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-tight">Super Admin</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 border-2 border-primary overflow-hidden">
+<img alt="User Profile" data-alt="Female professional portrait profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVpt0enXwwq2oRP6uzNnLM4zi0pmiadIkdl-eI4Zvqp_1XwQqvpZMEv2SqWXCYzSkP9saqgeu02PjvkZGiDy1igfm3nqeGa9UiFJv2cTHBOJOEVprqdQ_wSOcezsMvBnFMwC6s1AiwsiycghcWerTpepeA4zn6moGZdUmXmBlVAs__M3RPrlQRzYEZ3s-tTGuFn3BfRcxCW7Xt1wmETeQeuieHqHDRNJ95QhxcXV38c4_wMPDvKQ6Cbg4Pcn8Sdtr6ogJ55Pc8lWM"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<main class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Section 1: Overview Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+<div class="bg-white dark:bg-[#023047] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<span class="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+2.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Students</p>
+<h3 class="text-2xl font-bold dark:text-white mt-1">1,240</h3>
+</div>
+<div class="bg-white dark:bg-[#023047] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-info/10 rounded-lg text-info">
+<span class="material-symbols-outlined">person_pin_circle</span>
+</div>
+<span class="text-[10px] font-bold text-slate-400 bg-slate-500/10 px-2 py-0.5 rounded-full">Static</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Teachers</p>
+<h3 class="text-2xl font-bold dark:text-white mt-1">86</h3>
+</div>
+<div class="bg-white dark:bg-[#023047] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-accent/10 rounded-lg text-accent">
+<span class="material-symbols-outlined">meeting_room</span>
+</div>
+<span class="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+4%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Classes</p>
+<h3 class="text-2xl font-bold dark:text-white mt-1">42</h3>
+</div>
+<div class="bg-white dark:bg-[#023047] p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-green-500/10 rounded-lg text-green-500">
+<span class="material-symbols-outlined">rule</span>
+</div>
+<span class="text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">+1.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Avg Attendance</p>
+<h3 class="text-2xl font-bold dark:text-white mt-1">94.2%</h3>
+</div>
+</div>
+<!-- Section 2: Attendance Analytics -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 bg-white dark:bg-[#023047] p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold dark:text-white">Daily Attendance Bar Chart</h4>
+<p class="text-sm text-slate-500">Institutional tracking for the past 7 days</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-800 rounded-md text-slate-600 dark:text-slate-300">Last Week</button>
+<button class="px-3 py-1.5 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md text-slate-400">Monthly</button>
+</div>
+</div>
+<div class="grid grid-flow-col gap-8 h-64 items-end">
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[75%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">MON</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[85%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">TUE</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[92%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">WED</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[80%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">THU</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[60%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">FRI</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[40%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">SAT</span>
+</div>
+<div class="flex flex-col items-center gap-2 group">
+<div class="bg-slate-200 dark:bg-slate-800 w-12 rounded-t-lg relative overflow-hidden h-[30%]">
+<div class="absolute bottom-0 w-full bg-primary h-full opacity-80 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">SUN</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-6">
+<div class="bg-white dark:bg-[#023047] p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1">
+<h4 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Overall Performance</h4>
+<div class="flex flex-col items-center justify-center py-6">
+<div class="relative w-32 h-32 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-slate-100 dark:text-slate-800" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="36.4" stroke-width="8"></circle>
+</svg>
+<span class="absolute text-2xl font-bold dark:text-white">90%</span>
+</div>
+<div class="mt-6 text-center">
+<p class="text-2xl font-bold dark:text-white">Excellent</p>
+<p class="text-sm text-slate-500 mt-1">Institutional Average</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-[#023047] p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<h4 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Weekly Trend Line</h4>
+<div class="h-24 w-full relative">
+<!-- Minimal SVG Trendline -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 30">
+<path d="M0,25 C10,22 20,28 30,20 C40,12 50,15 60,10 C70,5 80,12 100,2" fill="none" stroke="#1896c3" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path d="M0,25 C10,22 20,28 30,20 C40,12 50,15 60,10 C70,5 80,12 100,2 L100,30 L0,30 Z" fill="url(#trend-gradient)" opacity="0.1"></path>
+<defs>
+<lineargradient id="trend-gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#1896c3"></stop>
+<stop offset="100%" stop-color="#1896c3" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-between mt-2">
+<span class="text-[9px] font-bold text-slate-400">WK 01</span>
+<span class="text-[9px] font-bold text-slate-400">WK 02</span>
+<span class="text-[9px] font-bold text-slate-400">WK 03</span>
+<span class="text-[9px] font-bold text-slate-400">WK 04</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 7: Real-time System Alerts -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h4 class="text-lg font-bold dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-warning">warning</span>
+                            Real-time System Alerts
+                        </h4>
+<button class="text-primary text-sm font-semibold hover:underline">Clear All</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center justify-between p-4 bg-warning/5 border border-warning/20 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
+<span class="material-symbols-outlined">videocam_off</span>
+</div>
+<div>
+<p class="text-sm font-bold text-warning">Camera Disconnected</p>
+<p class="text-xs text-slate-500">Classroom 302-B • 2 minutes ago</p>
+</div>
+</div>
+<button class="px-3 py-1 bg-warning text-white text-[11px] font-bold rounded-md">RESOLVE</button>
+</div>
+<div class="flex items-center justify-between p-4 bg-warning/5 border border-warning/20 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
+<span class="material-symbols-outlined">trending_down</span>
+</div>
+<div>
+<p class="text-sm font-bold text-warning">Low Attendance Warning</p>
+<p class="text-xs text-slate-500">CS-101 (Intro to AI) • Below 40% threshold</p>
+</div>
+</div>
+<button class="px-3 py-1 bg-warning text-white text-[11px] font-bold rounded-md">VIEW CLASS</button>
+</div>
+<div class="flex items-center justify-between p-4 bg-slate-100 dark:bg-[#023047] border border-slate-200 dark:border-slate-800 rounded-xl">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div>
+<p class="text-sm font-bold dark:text-white">System Backup Success</p>
+<p class="text-xs text-slate-500">Cloud Storage • Today 02:00 AM</p>
+</div>
+</div>
+<span class="text-[11px] font-bold text-slate-400">COMPLETED</span>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>
