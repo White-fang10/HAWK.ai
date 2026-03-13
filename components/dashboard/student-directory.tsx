@@ -345,8 +345,24 @@ export function StudentDirectory({ externalSearch }: StudentDirectoryProps) {
   const [editStudent, setEditStudent] = useState<Student | null>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("All")
   const [filterOpen, setFilterOpen] = useState(false)
+  const [showMigrationBanner, setShowMigrationBanner] = useState(false)
 
-  useEffect(() => { loadStudents() }, [])
+  useEffect(() => {
+    loadStudents()
+    // Poll migration status — only show if not already dismissed
+    const dismissed = typeof window !== "undefined" && localStorage.getItem("hawkMigrationDismissed") === "1"
+    if (!dismissed) {
+      fetch("/api/migration/status")
+        .then(r => r.json())
+        .then(data => { if (data?.needs_reregistration) setShowMigrationBanner(true) })
+        .catch(() => {})
+    }
+  }, [])
+
+  const dismissMigrationBanner = () => {
+    localStorage.setItem("hawkMigrationDismissed", "1")
+    setShowMigrationBanner(false)
+  }
 
   const loadStudents = async () => {
     try {
@@ -405,6 +421,26 @@ export function StudentDirectory({ externalSearch }: StudentDirectoryProps) {
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      {/* Migration Banner */}
+      {showMigrationBanner && (
+        <div className="flex items-start gap-3 border-b border-amber-200/40 bg-amber-500/10 px-5 py-3">
+          <span className="mt-0.5 shrink-0 text-base">⚠️</span>
+          <div className="flex-1 text-xs">
+            <p className="font-semibold text-amber-700 dark:text-amber-400">Model upgraded — all students must re-register their face</p>
+            <p className="mt-0.5 text-amber-600/80 dark:text-amber-400/70">
+              The AI has been upgraded to AdaFace IR-50. Previous face templates are incompatible.
+              Please re-upload a photo for each student via the <strong>Add Student</strong> button.
+            </p>
+          </div>
+          <button
+            onClick={dismissMigrationBanner}
+            aria-label="Dismiss"
+            className="shrink-0 rounded p-0.5 text-amber-600 hover:bg-amber-500/20 transition-colors"
+          >
+            <X className="size-3.5" />
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col gap-3 border-b border-border px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>

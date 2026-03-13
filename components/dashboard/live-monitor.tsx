@@ -16,6 +16,7 @@ interface FaceBox {
   y2: number
   name: string
   known: boolean
+  vote_ratio?: number
 }
 
 interface Stats {
@@ -26,6 +27,7 @@ interface Stats {
   faces: FaceBox[]
   frame_width: number
   frame_height: number
+  vote_progress: Record<string, number>
 }
 
 // ── Manual rounded rect (cross-browser — no ctx.roundRect required) ───────────
@@ -56,6 +58,7 @@ export function LiveClassroomMonitor() {
     faces: [],
     frame_width: CAPTURE_WIDTH,
     frame_height: CAPTURE_HEIGHT,
+    vote_progress: {},
   })
   const [framesSent, setFramesSent] = useState(0)
   const [camError, setCamError] = useState("")
@@ -238,7 +241,7 @@ export function LiveClassroomMonitor() {
     }
     latestStatsRef.current = null
     setMode("idle")
-    setStats({ detected: 0, recognized: [], unknown: 0, timestamp: "--", faces: [], frame_width: CAPTURE_WIDTH, frame_height: CAPTURE_HEIGHT })
+    setStats({ detected: 0, recognized: [], unknown: 0, timestamp: "--", faces: [], frame_width: CAPTURE_WIDTH, frame_height: CAPTURE_HEIGHT, vote_progress: {} })
     setFramesSent(0)
   }, [])
 
@@ -418,6 +421,35 @@ export function LiveClassroomMonitor() {
             </div>
           </div>
         </div>
+
+        {/* ── Vote Progress Strip ── */}
+        {isStreaming && Object.keys(stats.vote_progress).length > 0 && (
+          <div className="mt-4 space-y-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Recognition Confidence</p>
+            {Object.entries(stats.vote_progress).map(([sid, ratio]) => {
+              const confirmed = ratio >= 0.40
+              const pct = Math.min(100, Math.round(ratio * 100))
+              const name = stats.faces.find(f => f.known)?.name ?? `Student #${sid}`
+              return (
+                <div key={sid} className="flex items-center gap-2">
+                  <span className="w-24 truncate text-[10px] font-medium text-foreground">{name}</span>
+                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        backgroundColor: confirmed ? "#27E8A7" : "#F59E0B",
+                      }}
+                    />
+                  </div>
+                  <span className={`text-[10px] font-bold tabular-nums ${
+                    confirmed ? "text-[#27E8A7]" : "text-amber-500"
+                  }`}>{pct}%</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* ── Flow info strip ── */}
         {!isStreaming && !camError && (

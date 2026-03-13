@@ -936,5 +936,80 @@ def admin_search(q: str = "", db: Session = Depends(get_db)):
     }
 
 
+# ─────────────────────────────────────────────
+# MIGRATION STATUS (Phase 3 — AdaFace upgrade)
+# ─────────────────────────────────────────────
+
+@app.get("/api/migration/status")
+def migration_status(db: Session = Depends(get_db)):
+    """
+    Returns whether the database contains embeddings that were generated
+    by InsightFace buffalo_l (incompatible with AdaFace IR-50).
+    The frontend uses this to show a re-registration warning banner.
+    """
+    students_with_embeddings = db.query(models.Student).filter(
+        models.Student.embedding != None
+    ).count()
+    return {
+        "needs_reregistration": students_with_embeddings > 0,
+        "registered_count": students_with_embeddings,
+        "reason": (
+            "AdaFace IR-50 embeddings are mathematically incompatible with the "
+            "previous InsightFace buffalo_l embeddings. All students must re-register "
+            "their face by uploading a new photo."
+        ),
+    }
+
+
+# ─────────────────────────────────────────────
+# SEATING MAP (Phase 5)
+# ─────────────────────────────────────────────
+
+class SeatingAssignment(BaseModel):
+    seat_id: str
+    student_id: int
+    zone: dict  # {x1, y1, x2, y2}
+
+@app.get("/api/seating")
+def list_seating():
+    """Return all current seat assignments from the in-memory seat map."""
+    from vision.pipeline import pipeline as _pipeline
+    from vision.pipeline import SeatZone
+    result = []
+    for seat_id, zone in _pipeline.seat_map.items():
+        result.append({
+            "seat_id": zone.seat_id,
+            "student_id": zone.student_id,
+            "zone": {"x1": zone.x1, "y1": zone.y1, "x2": zone.x2, "y2": zone.y2},
+        })
+    return result
+
+@app.post("/api/seating")
+def assign_seat(assignment: SeatingAssignment):
+    """Assign (or update) a student to a seat zone."""
+    from vision.pipeline import pipeline as _pipeline
+    from vision.pipeline import SeatZone
+    zone_data = assignment.zone
+    zone = SeatZone(
+        seat_id=assignment.seat_id,
+        student_id=assignment.student_id,
+        x1=int(zone_data.get("x1", 0)),
+        y1=int(zone_data.get("y1", 0)),
+        x2=int(zone_data.get("x2", 0)),
+        y2=int(zone_data.get("y2", 0)),
+    )
+    _pipeline.seat_map[assignment.seat_id] = zone
+    return {"message": f"Seat {assignment.seat_id} assigned to student {assignment.student_id}."}
+
+@app.delete("/api/seating/{seat_id}")
+def remove_seat(seat_id: str):
+    """Remove a seat assignment from the in-memory seat map."""
+    from vision.pipeline import pipeline as _pipeline
+    if seat_id not in _pipeline.seat_map:
+        raise HTTPException(status_code=404, detail=f"Seat '{seat_id}' not found.")
+    del _pipeline.seat_map[seat_id]
+    return {"message": f"Seat {seat_id} assignment removed."}
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
