@@ -677,7 +677,8 @@ def _seed_admin_users(db: Session):
 
 @app.post("/api/auth/login", response_model=schemas.LoginResponse)
 def login(request: schemas.LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(models.AdminUser).filter(models.AdminUser.email == request.email).first()
+    email = request.email.strip().lower()
+    user = db.query(models.AdminUser).filter(func.lower(models.AdminUser.email) == email).first()
     if not user or not _verify_password(request.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.is_active:

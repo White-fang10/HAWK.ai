@@ -38,11 +38,11 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(data.detail || "Invalid email or password")
+        setError(data.detail || "Invalid credentials")
         return
       }
       const data = await res.json()
@@ -138,12 +138,12 @@ export default function LoginPage() {
 
         {/* Mode Toggle */}
         <div className="flex rounded-xl overflow-hidden border border-[rgba(255,255,255,0.08)] mb-5 p-1 bg-[#023047]/60 backdrop-blur-sm">
-          <button type="button" onClick={() => switchMode("user")}
+          <button type="button" onClick={() => switchMode("user")} suppressHydrationWarning
             className={`flex flex-1 items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${mode === "user" ? "bg-[#219EBC] text-white shadow-lg shadow-[#219EBC]/30" : "text-[#8ECAE6] hover:text-white"
               }`}>
             <Users className="w-4 h-4" /> User Dashboard
           </button>
-          <button type="button" onClick={() => switchMode("admin")}
+          <button type="button" onClick={() => switchMode("admin")} suppressHydrationWarning
             className={`flex flex-1 items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${mode === "admin" ? "bg-[#219EBC] text-white shadow-lg shadow-[#219EBC]/30" : "text-[#8ECAE6] hover:text-white"
               }`}>
             <Shield className="w-4 h-4" /> Admin Panel
@@ -175,7 +175,7 @@ export default function LoginPage() {
                       placeholder="••••••••"
                       suppressHydrationWarning
                       className="w-full px-4 py-2.5 pr-10 rounded-xl bg-[#011a27]/80 border border-[rgba(255,255,255,0.1)] text-white placeholder:text-[#8ECAE6]/40 focus:outline-none focus:ring-2 focus:ring-[#219EBC]/50 transition-all text-sm" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} suppressHydrationWarning
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8ECAE6]/60 hover:text-white transition-colors">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -187,7 +187,7 @@ export default function LoginPage() {
                     <p className="text-xs text-red-400">{error}</p>
                   </div>
                 )}
-                <button type="submit" disabled={loading}
+                <button type="submit" disabled={loading} suppressHydrationWarning
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#219EBC] text-white font-bold text-sm shadow-lg shadow-[#219EBC]/25 hover:bg-[#1A8BA8] transition-all active:scale-95 disabled:opacity-60">
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign In to Dashboard"}
                 </button>
@@ -234,7 +234,7 @@ export default function LoginPage() {
                     <p className="text-xs text-red-400">{error}</p>
                   </div>
                 )}
-                <button type="submit" disabled={loading}
+                <button type="submit" disabled={loading} suppressHydrationWarning
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#219EBC] text-white font-bold text-sm shadow-lg shadow-[#219EBC]/25 hover:bg-[#1A8BA8] transition-all active:scale-95 disabled:opacity-60">
                   {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : "Sign In to Admin Panel"}
                 </button>
