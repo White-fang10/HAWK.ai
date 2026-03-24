@@ -6,7 +6,8 @@ __v0_jsx-dev-runtime.ts
 # Common ignores
 node_modules/
 .next/
-.env*.local
+.env*
+*.env
 .DS_Store
 
 # Python & Backend
@@ -14,8 +15,11 @@ backend/venv/
 backend/__pycache__/
 backend/*.pyc
 backend/*.db
+backend/*.sqlite
 backend/*.sqlite3
 backend/data/
+backend/faces/
+backend/embeddings/
 backend/vision/__pycache__/
 
 # Large model files (download separately)
@@ -30,3 +34,6 @@ npm-debug.log*
 
 # OS
 Thumbs.db
+# Context Pilot generated files
+CONTEXT.md
+ARCHITECTURE.md

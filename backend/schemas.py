@@ -27,8 +27,8 @@ class StudentBase(BaseModel):
     name: str
     roll: str
     email: str
-    phone: str
-    avatar: str
+    phone: Optional[str] = None
+    avatar: Optional[str] = None
 
 
 class StudentCreate(StudentBase):
@@ -202,3 +202,26 @@ class AdminStatsOut(BaseModel):
     student_trend: str = "+0%"
     class_trend: str = "+0%"
     attendance_trend: str = "+0%"
+
+
+# --- Attendance Session Schemas (Phase 2) ---
+class AttendanceSessionCreate(BaseModel):
+    label: Optional[str] = None
+    class_id: Optional[int] = None
+
+
+class AttendanceSessionOut(BaseModel):
+    id: int
+    class_id: Optional[int] = None
+    label: Optional[str] = None
+    started_by: Optional[int] = None
+    started_at: datetime
+    ended_at: Optional[datetime] = None
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SessionEndOut(BaseModel):
+    message: str
+    ended_at: str

@@ -1,256 +1,74 @@
 "use client"
 
-import { Video, Eye, UserX, Radio, Globe, Camera, Square } from "lucide-react"
-import { useState, useEffect, useRef, useCallback } from "react"
-import { cn } from "@/lib/utils"
+import { Eye, UserX, Globe, RefreshCw, CheckCircle2, XCircle, Clock } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { getAuthHeaders } from "@/lib/api"
 
-const FRAME_INTERVAL_MS = 1000 // ms between frame uploads (sequential)
-const CAPTURE_WIDTH = 960
-const CAPTURE_HEIGHT = 540
-
-// ── Face box type returned by backend ────────────────────────────────────────
-interface FaceBox {
-  x1: number
-  y1: number
-  x2: number
-  y2: number
+interface Student {
+  id: number
   name: string
-  known: boolean
-  vote_ratio?: number
+  roll: string
+  status: string
+  attendance: number
+  avatar?: string
 }
 
-interface Stats {
-  detected: number
-  recognized: string[]
-  unknown: number
-  timestamp: string
-  faces: FaceBox[]
-  frame_width: number
-  frame_height: number
-  vote_progress: Record<string, number>
-}
-
-// ── Manual rounded rect (cross-browser — no ctx.roundRect required) ───────────
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, w: number, h: number, r: number
-) {
-  ctx.beginPath()
-  ctx.moveTo(x + r, y)
-  ctx.lineTo(x + w - r, y)
-  ctx.arc(x + w - r, y + r, r, -Math.PI / 2, 0)
-  ctx.lineTo(x + w, y + h - r)
-  ctx.arc(x + w - r, y + h - r, r, 0, Math.PI / 2)
-  ctx.lineTo(x + r, y + h)
-  ctx.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI)
-  ctx.lineTo(x, y + r)
-  ctx.arc(x + r, y + r, r, Math.PI, -Math.PI / 2)
-  ctx.closePath()
+interface Summary {
+  total: number
+  present: number
+  absent: number
+  late: number
+  rate: number
 }
 
 export function LiveClassroomMonitor() {
-  const [mode, setMode] = useState<"idle" | "streaming">("idle")
-  const [stats, setStats] = useState<Stats>({
-    detected: 0,
-    recognized: [],
-    unknown: 0,
-    timestamp: "--",
-    faces: [],
-    frame_width: CAPTURE_WIDTH,
-    frame_height: CAPTURE_HEIGHT,
-    vote_progress: {},
-  })
-  const [framesSent, setFramesSent] = useState(0)
-  const [camError, setCamError] = useState("")
+  const [students, setStudents] = useState<Student[]>([])
+  const [summary, setSummary] = useState<Summary>({ total: 0, present: 0, absent: 0, late: 0, rate: 0 })
+  const [loading, setLoading] = useState(true)
+  const [lastSync, setLastSync] = useState<string>("--")
+  const [filter, setFilter] = useState<"all" | "present" | "absent">("all")
 
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)      // hidden – frame capture
-  const overlayRef = useRef<HTMLCanvasElement>(null)     // visible – face-box overlay
-  const streamRef = useRef<MediaStream | null>(null)
-  const activeRef = useRef(false)
-  const latestStatsRef = useRef<Stats | null>(null)
-  const animFrameRef = useRef<number>(0)
-
-  const UPLOAD_URL = "/api/camera/upload"
-
-  // ── Draw face boxes onto the overlay canvas ─────────────────────────────────
-  const drawFaceBoxes = useCallback(() => {
-    const canvas = overlayRef.current
-    const video = videoRef.current
-    if (!canvas || !video) {
-      animFrameRef.current = requestAnimationFrame(drawFaceBoxes)
-      return
-    }
-
-    // Keep canvas pixel size synced to rendered video element
-    if (canvas.width !== video.clientWidth || canvas.height !== video.clientHeight) {
-      canvas.width = video.clientWidth
-      canvas.height = video.clientHeight
-    }
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) {
-      animFrameRef.current = requestAnimationFrame(drawFaceBoxes)
-      return
-    }
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const st = latestStatsRef.current
-    if (!st || st.faces.length === 0) {
-      animFrameRef.current = requestAnimationFrame(drawFaceBoxes)
-      return
-    }
-
-    const scaleX = canvas.width / st.frame_width
-    const scaleY = canvas.height / st.frame_height
-
-    st.faces.forEach((box) => {
-      const x1 = box.x1 * scaleX
-      const y1 = box.y1 * scaleY
-      const x2 = box.x2 * scaleX
-      const y2 = box.y2 * scaleY
-      const w = x2 - x1
-      const h = y2 - y1
-
-      const strokeColor = box.known ? "#27E8A7" : "#FF4C4C"
-      const fillColor   = box.known ? "rgba(39,232,167,0.10)" : "rgba(255,76,76,0.09)"
-      const labelBg     = box.known ? "rgba(33,188,130,0.88)"  : "rgba(220,50,50,0.88)"
-
-      // ── Bounding box ─────────────────────────────────────────────────────
-      const r = 5
-      roundRect(ctx, x1, y1, w, h, r)
-      ctx.strokeStyle = strokeColor
-      ctx.lineWidth = 2
-      ctx.fillStyle = fillColor
-      ctx.fill()
-      ctx.stroke()
-
-      // ── Corner HUD accents ────────────────────────────────────────────────
-      const al = Math.min(w, h) * 0.18
-      ctx.strokeStyle = strokeColor
-      ctx.lineWidth = 2.5
-      ;[
-        [[x1, y1 + al], [x1, y1], [x1 + al, y1]],
-        [[x2 - al, y1], [x2, y1], [x2, y1 + al]],
-        [[x1, y2 - al], [x1, y2], [x1 + al, y2]],
-        [[x2 - al, y2], [x2, y2], [x2, y2 - al]],
-      ].forEach(([[ax, ay], [bx, by], [cx, cy]]) => {
-        ctx.beginPath()
-        ctx.moveTo(ax, ay)
-        ctx.lineTo(bx, by)
-        ctx.lineTo(cx, cy)
-        ctx.stroke()
-      })
-
-      // ── Name label ────────────────────────────────────────────────────────
-      const fontSize = Math.max(10, Math.min(14, h * 0.12))
-      ctx.font = `700 ${fontSize}px Inter, Segoe UI, sans-serif`
-      const tw = ctx.measureText(box.name).width
-      const lh = fontSize + 8
-      const ly = Math.max(0, y1 - lh - 2)
-
-      ctx.fillStyle = labelBg
-      roundRect(ctx, x1, ly, tw + 14, lh, 4)
-      ctx.fill()
-
-      ctx.fillStyle = "#FFFFFF"
-      ctx.fillText(box.name, x1 + 7, ly + lh - 4)
-    })
-
-    animFrameRef.current = requestAnimationFrame(drawFaceBoxes)
-  }, [])
-
-  // ── Sequential upload loop ──────────────────────────────────────────────────
-  const uploadLoop = useCallback(async () => {
-    while (activeRef.current) {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      if (!video || !canvas || video.readyState < 2) {
-        await new Promise(r => setTimeout(r, 300))
-        continue
-      }
-
-      canvas.width = CAPTURE_WIDTH
-      canvas.height = CAPTURE_HEIGHT
-      const ctx = canvas.getContext("2d")
-      if (!ctx) { await new Promise(r => setTimeout(r, 300)); continue }
-      ctx.drawImage(video, 0, 0, CAPTURE_WIDTH, CAPTURE_HEIGHT)
-
-      try {
-        const blob = await new Promise<Blob | null>((resolve) =>
-          canvas.toBlob(resolve, "image/jpeg", 0.6)
-        )
-        if (blob && activeRef.current) {
-          const form = new FormData()
-          form.append("file", blob, "frame.jpg")
-          const res = await fetch(UPLOAD_URL, { method: "POST", body: form })
-          if (res.ok) {
-            const data: Stats = await res.json()
-            latestStatsRef.current = data
-            setStats(data)
-            setFramesSent(n => n + 1)
-          }
-        }
-      } catch { /* single-frame failures silently ignored */ }
-
-      if (activeRef.current) {
-        await new Promise(r => setTimeout(r, FRAME_INTERVAL_MS))
-      }
-    }
-  }, [UPLOAD_URL])
-
-  const startCapture = useCallback(async () => {
-    setCamError("")
+  const fetchData = useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
-        audio: false,
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        // ✅ Do NOT call .play() here — autoPlay on the <video> tag handles it.
-        // Calling play() manually causes an AbortError when autoPlay is also set.
+      const [studRes, sumRes] = await Promise.all([
+        fetch("/api/students", { headers: getAuthHeaders() }),
+        fetch("/api/analytics/summary", { headers: getAuthHeaders() }),
+      ])
+      if (studRes.ok) {
+        const data: Student[] = await studRes.json()
+        setStudents(data)
       }
-      setMode("streaming")
-      setFramesSent(0)
-      activeRef.current = true
-      uploadLoop()
-      // Start overlay animation loop
-      animFrameRef.current = requestAnimationFrame(drawFaceBoxes)
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Camera access denied"
-      setCamError(msg)
+      if (sumRes.ok) {
+        const data: Summary = await sumRes.json()
+        setSummary(data)
+      }
+      setLastSync(new Date().toLocaleTimeString())
+    } catch {
+      // silently ignore — user can manually refresh
+    } finally {
+      setLoading(false)
     }
-  }, [uploadLoop, drawFaceBoxes])
-
-  const stopCapture = useCallback(() => {
-    activeRef.current = false
-    cancelAnimationFrame(animFrameRef.current)
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-      streamRef.current = null
-    }
-    if (videoRef.current) videoRef.current.srcObject = null
-    // Clear overlay
-    const oc = overlayRef.current
-    if (oc) {
-      const ctx = oc.getContext("2d")
-      ctx?.clearRect(0, 0, oc.width, oc.height)
-    }
-    latestStatsRef.current = null
-    setMode("idle")
-    setStats({ detected: 0, recognized: [], unknown: 0, timestamp: "--", faces: [], frame_width: CAPTURE_WIDTH, frame_height: CAPTURE_HEIGHT, vote_progress: {} })
-    setFramesSent(0)
   }, [])
 
-  useEffect(() => () => stopCapture(), [stopCapture])
+  // Fetch on mount, then poll every 10 seconds
+  useEffect(() => {
+    fetchData()
+    const interval = setInterval(fetchData, 10_000)
+    return () => clearInterval(interval)
+  }, [fetchData])
 
-  const isStreaming = mode === "streaming"
+  const filtered = students.filter((s) => {
+    if (filter === "present") return s.status === "present"
+    if (filter === "absent") return s.status === "absent" || s.status === "late"
+    return true
+  })
+
+  const presentCount = students.filter(s => s.status === "present").length
+  const absentCount = students.filter(s => s.status === "absent").length
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+
       {/* ── Header ── */}
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
         <div className="flex items-center gap-3">
@@ -258,211 +76,196 @@ export function LiveClassroomMonitor() {
             <Globe className="size-5 text-[#219EBC]" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Live Classroom Monitor</h3>
+            <h3 className="text-sm font-semibold text-foreground">Classroom Attendance Status</h3>
             <p className="text-xs text-muted-foreground">
-              {isStreaming ? "AI-powered face recognition active" : "Camera idle — click Start to begin attendance detection"}
+              Use the Smartboard to capture attendance · Dashboard refreshes every 10s
             </p>
           </div>
         </div>
-        {isStreaming && (
-          <span className="flex items-center gap-1.5 rounded-full bg-[rgba(239,68,68,0.1)] px-3 py-1 text-xs font-medium text-[#EF4444]">
-            <Radio className="size-3 animate-pulse" />
-            LIVE · {framesSent} frames
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Clock className="size-3" /> Last sync: {lastSync}
           </span>
-        )}
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/50
+                       px-3 py-1.5 text-xs font-semibold text-foreground
+                       hover:bg-muted transition-all"
+          >
+            <RefreshCw className="size-3" />
+            Refresh
+          </button>
+        </div>
       </div>
 
-      <div className="p-6">
-        {/* ── Video + overlay area ── */}
-        <div className="relative flex min-h-[380px] flex-col justify-center rounded-xl bg-muted/40 overflow-hidden">
+      <div className="p-6 space-y-5">
 
-          {/* Raw webcam — native FPS, never touched by overlay */}
-          <video
-            ref={videoRef}
-            autoPlay playsInline muted
-            className={cn("absolute inset-0 w-full h-full object-cover", !isStreaming && "hidden")}
-          />
-
-          {/* Face-box overlay canvas — pointer-events:none so clicks pass through */}
-          <canvas
-            ref={overlayRef}
-            className={cn("absolute inset-0 w-full h-full", !isStreaming && "hidden")}
-            style={{ pointerEvents: "none" }}
-          />
-
-          {/* Hidden capture canvas */}
-          <canvas ref={canvasRef} className="hidden" />
-
-          {/* Idle placeholder */}
-          {!isStreaming && !camError && (
-            <div className="flex flex-col items-center gap-4 text-center py-16">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-[rgba(33,158,188,0.15)] shadow-inner">
-                <Camera className="size-8 text-[#219EBC]" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-foreground">Camera Inactive</p>
-                <p className="text-xs text-muted-foreground mt-1 max-w-[280px] mx-auto">
-                  Click <strong>Start Camera</strong> to open the local webcam and begin
-                  real-time face recognition &amp; attendance tracking.
-                </p>
-              </div>
+        {/* ── Summary stat cards ── */}
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: "Total", value: summary.total, color: "#219EBC", bg: "rgba(33,158,188,0.08)" },
+            { label: "Present", value: summary.present, color: "#27E8A7", bg: "rgba(39,232,167,0.08)" },
+            { label: "Absent", value: summary.absent, color: "#FB8500", bg: "rgba(251,133,0,0.08)" },
+            { label: "Rate", value: `${summary.rate}%`, color: "#C77DFF", bg: "rgba(199,125,255,0.08)" },
+          ].map((s) => (
+            <div
+              key={s.label}
+              style={{ background: s.bg, border: `1px solid ${s.color}30` }}
+              className="rounded-xl px-4 py-3 text-center"
+            >
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                {s.label}
+              </p>
+              <p className="text-2xl font-black mt-1" style={{ color: s.color }}>
+                {s.value}
+              </p>
             </div>
-          )}
-
-          {/* Camera error */}
-          {camError && (
-            <div className="flex flex-col items-center gap-4 text-center py-16 px-6">
-              <div className="flex size-16 items-center justify-center rounded-2xl bg-[rgba(251,133,0,0.15)]">
-                <Video className="size-8 text-[#0D1B2A]" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-[#0D1B2A]">Camera Access Failed</p>
-                <p className="text-xs text-muted-foreground mt-1 max-w-[300px]">{camError}</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Make sure you are on <strong>localhost:3000</strong> and allow camera permissions.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Status overlays while streaming */}
-          {isStreaming && (
-            <>
-              {/* Top-left: Live AI Feed label */}
-              <div className="absolute top-2 left-2 rounded-md px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-sm flex items-center gap-1.5 bg-[#219EBC]/80" style={{ zIndex: 20 }}>
-                <Globe className="size-3" />
-                <span>Live AI Feed</span>
-              </div>
-
-              {/* Recognised name chips */}
-              {stats.recognized.length > 0 && (
-                <div className="absolute bottom-10 left-3 flex flex-wrap gap-1 max-w-xs" style={{ zIndex: 20 }}>
-                  {stats.recognized.map((name, i) => (
-                    <span key={i} className="rounded bg-[rgba(33,158,188,0.85)] px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Bottom-left: face count */}
-              <div className="absolute bottom-3 left-3 flex items-center gap-2" style={{ zIndex: 20 }}>
-                <span className="rounded bg-[rgba(0,0,0,0.6)] px-1.5 py-0.5 text-[10px] font-medium text-white">
-                  {stats.detected} face{stats.detected !== 1 ? "s" : ""}
-                </span>
-              </div>
-
-              {/* Bottom-right: LIVE + timestamp */}
-              <div className="absolute bottom-3 right-3 rounded bg-[rgba(0,0,0,0.6)] px-1.5 py-0.5 text-[10px] tabular-nums text-white flex gap-2" style={{ zIndex: 20 }}>
-                <span className="text-green-400 font-bold tracking-wider">● LIVE</span>
-                {stats.timestamp}
-              </div>
-            </>
-          )}
+          ))}
         </div>
 
-        {/* ── Controls ── */}
-        <div className="mt-5 flex items-center justify-between flex-wrap gap-4">
-          <button
-            onClick={isStreaming ? stopCapture : startCapture}
-            className={cn(
-              "flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200",
-              isStreaming
-                ? "bg-[rgba(13,27,42,0.1)] text-[#0D1B2A] hover:bg-[rgba(13,27,42,0.2)]"
-                : "bg-[#219EBC] text-white shadow-lg shadow-[#219EBC]/25 hover:bg-[#1A8BA8]"
-            )}
-          >
-            {isStreaming ? (
-              <><Square className="size-4" /> Stop Camera</>
-            ) : (
-              <><Camera className="size-4" /> Start Camera</>
-            )}
-          </button>
-
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-[rgba(33,158,188,0.1)]">
-                <Eye className="size-4 text-[#219EBC]" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Detected</p>
-                <p className="text-lg font-bold text-foreground leading-none mt-0.5">
-                  {isStreaming ? stats.detected : "--"}
-                </p>
-              </div>
-            </div>
-
-            <div className="h-8 w-px bg-border" />
-
-            <div className="flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-[rgba(33,158,188,0.1)]">
-                <Globe className="size-4 text-[#219EBC]" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Recognised</p>
-                <p className="text-lg font-bold text-foreground leading-none mt-0.5">
-                  {isStreaming ? stats.recognized.length : "--"}
-                </p>
-              </div>
-            </div>
-
-            <div className="h-8 w-px bg-border" />
-
-            <div className="flex items-center gap-3">
-              <div className="flex size-8 items-center justify-center rounded-lg bg-[rgba(251,133,0,0.1)]">
-                <UserX className="size-4 text-[#0D1B2A]" />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Unknown</p>
-                <p className="text-lg font-bold text-foreground leading-none mt-0.5">
-                  {isStreaming ? stats.unknown : "--"}
-                </p>
-              </div>
-            </div>
+        {/* ── Attendance rate bar ── */}
+        <div>
+          <div className="flex justify-between text-[10px] font-semibold text-muted-foreground mb-1.5">
+            <span>Attendance Rate</span>
+            <span className="text-foreground">{summary.rate}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${summary.rate}%`,
+                background: summary.rate >= 75
+                  ? "linear-gradient(90deg, #27E8A7, #219EBC)"
+                  : summary.rate >= 50
+                    ? "linear-gradient(90deg, #F59E0B, #FB8500)"
+                    : "linear-gradient(90deg, #EF4444, #DC2626)",
+              }}
+            />
           </div>
         </div>
 
-        {/* ── Vote Progress Strip ── */}
-        {isStreaming && Object.keys(stats.vote_progress).length > 0 && (
-          <div className="mt-4 space-y-1.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Recognition Confidence</p>
-            {Object.entries(stats.vote_progress).map(([sid, ratio]) => {
-              const confirmed = ratio >= 0.40
-              const pct = Math.min(100, Math.round(ratio * 100))
-              const name = stats.faces.find(f => f.known)?.name ?? `Student #${sid}`
+        {/* ── Filter tabs ── */}
+        <div className="flex gap-2">
+          {(["all", "present", "absent"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all capitalize ${filter === f
+                  ? "bg-[#219EBC] text-white shadow"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                }`}
+            >
+              {f === "all"
+                ? `All (${students.length})`
+                : f === "present"
+                  ? `Present (${presentCount})`
+                  : `Absent (${absentCount})`}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Student grid ── */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12 text-muted-foreground text-sm gap-2">
+            <RefreshCw className="size-4 animate-spin" />
+            Loading students…
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+            <div className="size-12 rounded-xl bg-muted/50 flex items-center justify-center">
+              <UserX className="size-6 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground">
+              {students.length === 0
+                ? "No students enrolled yet"
+                : "No students match this filter"}
+            </p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              {students.length === 0
+                ? "Add students in the Student Directory tab, then enrol their faces."
+                : "Switch to 'All' to see every student."}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 max-h-72 overflow-y-auto pr-1">
+            {filtered.map((s) => {
+              const isPresent = s.status === "present"
+              const isLate = s.status === "late"
               return (
-                <div key={sid} className="flex items-center gap-2">
-                  <span className="w-24 truncate text-[10px] font-medium text-foreground">{name}</span>
-                  <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: confirmed ? "#27E8A7" : "#F59E0B",
-                      }}
-                    />
+                <div
+                  key={s.id}
+                  className="flex items-center gap-2.5 rounded-xl border px-3 py-2.5 transition-all"
+                  style={{
+                    borderColor: isPresent ? "rgba(39,232,167,0.3)"
+                      : isLate ? "rgba(251,191,36,0.3)"
+                        : "rgba(255,255,255,0.06)",
+                    background: isPresent ? "rgba(39,232,167,0.06)"
+                      : isLate ? "rgba(251,191,36,0.06)"
+                        : "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  {/* Avatar */}
+                  <div
+                    className="flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-black"
+                    style={{
+                      background: isPresent ? "rgba(39,232,167,0.2)"
+                        : isLate ? "rgba(251,191,36,0.2)"
+                          : "rgba(255,255,255,0.08)",
+                      color: isPresent ? "#27E8A7"
+                        : isLate ? "#FBD24F"
+                          : "#8B9EC0",
+                    }}
+                  >
+                    {s.avatar || s.name.slice(0, 2).toUpperCase()}
                   </div>
-                  <span className={`text-[10px] font-bold tabular-nums ${
-                    confirmed ? "text-[#27E8A7]" : "text-amber-500"
-                  }`}>{pct}%</span>
+
+                  {/* Name + roll */}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-semibold text-foreground leading-tight">
+                      {s.name}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground">{s.roll}</p>
+                  </div>
+
+                  {/* Status icon */}
+                  {isPresent ? (
+                    <CheckCircle2 className="size-3.5 shrink-0 text-[#27E8A7]" />
+                  ) : isLate ? (
+                    <Clock className="size-3.5 shrink-0 text-yellow-400" />
+                  ) : (
+                    <XCircle className="size-3.5 shrink-0 text-muted-foreground/40" />
+                  )}
                 </div>
               )
             })}
           </div>
         )}
 
-        {/* ── Flow info strip ── */}
-        {!isStreaming && !camError && (
-          <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-muted-foreground flex-wrap">
-            {["Your Camera", "→", "YOLO Detection", "→", "Face Recognition", "→", "Attendance DB", "→", "Dashboard"].map((s, i) =>
-              s === "→" ? (
-                <span key={i} className="text-[#219EBC] font-bold">→</span>
-              ) : (
-                <span key={i} className="rounded bg-muted/60 px-2 py-0.5 font-semibold tracking-wide">{s}</span>
-              )
-            )}
-          </div>
-        )}
+        {/* ── How-it-works strip ── */}
+        <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground flex-wrap pt-1">
+          {[
+            "Smartboard Camera",
+            "→",
+            "5-Frame Burst",
+            "→",
+            "SCRFD Detection",
+            "→",
+            "GhostFaceNet",
+            "→",
+            "Attendance DB",
+            "→",
+            "This Dashboard",
+          ].map((s, i) =>
+            s === "→" ? (
+              <span key={i} className="text-[#219EBC] font-bold">→</span>
+            ) : (
+              <span key={i} className="rounded bg-muted/60 px-2 py-0.5 font-semibold tracking-wide">
+                {s}
+              </span>
+            )
+          )}
+        </div>
+
       </div>
     </div>
   )

@@ -7,14 +7,16 @@ python-multipart==0.0.9
 SQLAlchemy-Utils==0.41.2
 pytz==2024.1
 email-validator==2.2.0
-ultralytics==8.2.55
-insightface==0.7.3
-faiss-cpu==1.8.0.post1
+insightface>=0.7.3
 opencv-python==4.10.0.84
 onnxruntime==1.18.1
 lapx==0.5.9
 numpy<2.0.0
 openpyxl==3.1.5
 fpdf2==2.7.9
-torch>=2.0.0
-timm>=0.9.0
+requests>=2.31.0
+# Security (Phase 0)
+bcrypt>=4.0.1
+python-jose[cryptography]>=3.3.0
+# Note: torch, torchvision, timm, ultralytics removed — replaced by onnxruntime + insightface
+# Note: faiss-cpu removed — replaced with NumPy cosine similarity (sufficient for ≤60 students)

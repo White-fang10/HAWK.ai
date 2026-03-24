@@ -130,7 +130,7 @@ export function AdminOverview() {
                             </ResponsiveContainer>
                             {!hasRealDailyData && (
                                 <p className="text-center text-xs text-slate-500 mt-2">
-                                    📷 No face-scan attendance recorded yet this week. Start the camera to log attendance.
+                                    📸 No burst-scan attendance recorded yet this week. Use the Smartboard to take a 5-frame burst.
                                 </p>
                             )}
                         </>

@@ -1,0 +1,37 @@
+{
+  "budget": 40000,
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    ".git",
+    "build",
+    ".next",
+    "coverage",
+    "*.lock",
+    "*.log",
+    "*.vsix"
+  ],
+  "pinnedFiles": [],
+  "fileTypePriorities": {
+    "index.ts": 1,
+    "index.tsx": 1,
+    "main.ts": 1,
+    "app.ts": 0.95,
+    "types.ts": 0.95,
+    "types.tsx": 0.95,
+    "*.config.ts": 0.7,
+    "*.config.js": 0.7,
+    "*.test.ts": 0.2,
+    "*.test.tsx": 0.2,
+    "*.spec.ts": 0.2,
+    "*.spec.tsx": 0.2,
+    "*.md": 0.3,
+    "*.json": 0.4
+  },
+  "scoringWeights": {
+    "centrality": 0.4,
+    "recency": 0.25,
+    "fileType": 0.2,
+    "pin": 0.15
+  }
+}

@@ -14,6 +14,7 @@ import { ClassInsights } from "@/components/dashboard/class-insights"
 import { AbsentStudents } from "@/components/dashboard/absent-students"
 import { resetAttendance } from "@/lib/api"
 import { RotateCcw } from "lucide-react"
+import { BurstCapture } from "@/components/BurstCapture"
 
 export function DashboardShell() {
   const [activeTab, setActiveTab] = useState("dashboard")
@@ -104,12 +105,29 @@ function DashboardView({ externalSearch }: { externalSearch?: string }) {
 }
 
 function MonitorView() {
+  const [burstResult, setBurstResult] = useState<any>(null)
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Live Classroom Monitor</h1>
-        <p className="text-sm text-muted-foreground">Real-time AI face detection tracking</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Live Classroom Monitor & Camera</h1>
+        <p className="text-sm text-muted-foreground">Capture attendance photos and track real-time status</p>
       </div>
+      
+      {/* Camera Capture Section */}
+      <div className="rounded-2xl border border-border bg-card shadow-sm p-6 flex flex-col items-center">
+        <div className="w-full flex justify-between items-center mb-6">
+          <h3 className="text-lg font-bold">Smartboard Camera</h3>
+          {burstResult && (
+            <div className="text-sm font-semibold text-[#27E8A7] bg-[#27E8A7]/10 px-3 py-1 rounded-full border border-[#27E8A7]/20">
+              Last capture: {burstResult.confirmed?.length || 0} students marked present
+            </div>
+          )}
+        </div>
+        
+        <BurstCapture onResult={(res) => setBurstResult(res)} />
+      </div>
+
       <LiveClassroomMonitor />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <RealtimeAlerts />

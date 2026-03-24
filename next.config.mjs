@@ -2,7 +2,7 @@
 
 // BACKEND_URL is set by start-hawk-lan.ps1 → cloudflared tunnel URL.
 // When running locally (start-hawk.ps1), it falls back to http://localhost:8000.
-const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000"
+const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000"
 
 const nextConfig = {
   typescript: {
@@ -20,7 +20,7 @@ const nextConfig = {
     ]
   },
   experimental: {
-    // Increase proxy timeout so YOLO/InsightFace startup delay doesn't kill requests
+    // Increase proxy timeout so SCRFD+GhostFaceNet ONNX model warmup doesn't kill requests
     proxyTimeout: 120_000,
   },
   // Reuse TCP connections to backend to reduce connection churn

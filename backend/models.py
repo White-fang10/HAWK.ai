@@ -47,9 +47,11 @@ class Student(Base):
     current_status = Column(Enum(StatusEnum), default=StatusEnum.absent)
 
     # AI Embeddings stored as JSON array of floats
-    embedding = Column(String, nullable=True)
+    embedding  = Column(String, nullable=True)   # legacy: single average embedding (kept for compat)
+    embeddings = Column(String, nullable=True)   # new: JSON list of up to 15 template embeddings
 
     attendance_records = relationship("AttendanceRecord", back_populates="student", cascade="all, delete-orphan")
+
 
 
 class AttendanceRecord(Base):
@@ -123,3 +125,20 @@ class AdminUser(Base):
     profile_image = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+# ─────────────────────────────────────────────
+# Attendance Session (Phase 2)
+# NOTE: Named AttendanceSession, NOT Session — 'Session' is reserved by SQLAlchemy
+# ─────────────────────────────────────────────
+
+class AttendanceSession(Base):
+    __tablename__ = "attendance_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    class_id = Column(Integer, ForeignKey("classes.id"), nullable=True)
+    label = Column(String, nullable=True)        # e.g. "Morning Lecture"
+    started_by = Column(Integer, ForeignKey("admin_users.id"), nullable=True)
+    started_at = Column(DateTime, default=datetime.datetime.utcnow)
+    ended_at = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
