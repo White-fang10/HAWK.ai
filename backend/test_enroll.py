@@ -29,8 +29,9 @@ cv2.circle(test_img, (355, 210), 15, (80, 60, 40), -1)   # right eye
 cv2.ellipse(test_img, (320, 300), (40, 20), 0, 0, 180, (80, 60, 40), -1)  # mouth
 
 print("\nStep 1: Testing detector...")
-from vision.detector import detect
-dets = detect(test_img)
+from vision.detector import detect_tiled_enhanced
+enhanced, dets, was_sr = detect_tiled_enhanced(test_img)
+print(f"  Enhanced frame: {enhanced.shape[1]}×{enhanced.shape[0]}, SR={'yes' if was_sr else 'no'}")
 print(f"  Detections: {len(dets)}")
 
 print("\nStep 2: Testing recognizer directly...")

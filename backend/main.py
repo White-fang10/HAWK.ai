@@ -8,7 +8,7 @@ Migration: Burst-capture architecture (SCRFD + GhostFaceNet ONNX)
 """
 
 from fastapi import (
-    FastAPI, Depends, HTTPException, UploadFile, File, status
+    FastAPI, Depends, HTTPException, UploadFile, File, Form, status, Body
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
@@ -51,6 +51,7 @@ ALLOWED_ORIGINS = [o.strip() for o in _origins_raw.split(",") if o.strip()]
 Base.metadata.create_all(bind=engine)
 
 from vision.pipeline import pipeline
+import camera_control
 
 # ─────────────────────────────────────────────
 # JWT helpers
@@ -157,9 +158,14 @@ async def lifespan(app: FastAPI):
         # This replaces the old: from vision.detector import _get_scrfd
         pipeline.warmup()
         print("[Startup] All models ready.")
+        # ADB camera control — attempt non-blocking connect to Raptor 65
+        adb_status = camera_control.connect()
+        print(f"[Startup] ADB: {adb_status['message']}")
     finally:
         db.close()
     yield
+    # Disconnect ADB on shutdown
+    camera_control.disconnect()
 
 
 app = FastAPI(title="Hawk.ai Attendance Backend", lifespan=lifespan)
@@ -341,21 +347,143 @@ def update_student(
 
 
 # ─────────────────────────────────────────────
-# ATTENDANCE — BURST ENDPOINT (new)
+# ATTENDANCE ENDPOINTS
 # ─────────────────────────────────────────────
+
+@app.post("/api/attendance/detect-wide")
+async def detect_wide(
+    file: UploadFile = File(...),
+    _user = Depends(get_current_user),
+):
+    """
+    Lightweight endpoint: decode a single wide-shot JPEG frame and return
+    raw face bounding boxes. No recognition, no DB write.
+
+    Used by the adaptive-zoom frontend to locate face clusters before
+    deciding where to zoom the camera for the recognition burst.
+
+    Returns:
+        {
+          "faces": [{"bbox": [x1,y1,x2,y2], "conf": 0.87, "face_size": 62}, ...],
+          "image_width":  1920,
+          "image_height": 1080,
+        }
+    """
+    from vision.detector import detect_tiled
+
+    data = np.frombuffer(await file.read(), np.uint8)
+    img  = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    if img is None:
+        raise HTTPException(400, "Could not decode image")
+
+    h, w = img.shape[:2]
+    dets = await asyncio.to_thread(detect_tiled, img)
+
+    return {
+        "faces": [
+            {
+                "bbox":      [int(v) for v in d["bbox"]],
+                "conf":      round(d["conf"], 3),
+                "face_size": d["face_size"],
+            }
+            for d in dets
+        ],
+        "image_width":  w,
+        "image_height": h,
+    }
+
+
+# ─────────────────────────────────────────────
+# CAMERA CONTROL (ADB → Raptor 65)
+# ─────────────────────────────────────────────
+
+@app.get("/api/camera/status")
+async def camera_status(_user = Depends(get_current_user)):
+    """
+    Returns ADB/ONVIF connection state, zoom method, and current zoom level.
+    Frontend checks this on mount to decide zoom mode.
+    """
+    return camera_control.get_status()
+
+
+class ZoomRequest(BaseModel):
+    zoom:          float
+    center_x_pct:  float = 0.5
+    center_y_pct:  float = 0.5
+
+
+@app.post("/api/camera/zoom")
+async def camera_zoom(
+    req: ZoomRequest,
+    _user = Depends(get_current_user),
+):
+    """
+    Send a zoom + tap-to-focus command to the Raptor 65 via ADB.
+    Returns {ok, method, message}. If ADB is not connected, ok=False
+    and the frontend falls back to software crop zoom.
+    """
+    result = await asyncio.to_thread(
+        camera_control.set_zoom,
+        req.zoom,
+        req.center_x_pct,
+        req.center_y_pct,
+    )
+    return result
+
+
+@app.post("/api/camera/reset-zoom")
+async def camera_reset_zoom(_user = Depends(get_current_user)):
+    """Reset Raptor 65 camera to 1× (wide) via ADB."""
+    result = await asyncio.to_thread(camera_control.reset_zoom)
+    return result
+
+
+@app.post("/api/camera/config")
+async def camera_config(
+    req: dict = Body(...),
+    _user = Depends(get_current_user),
+):
+    """
+    Update the Raptor IP and attempt to reconnect via ADB + probe ONVIF.
+    Body: {"raptor_ip": "192.168.1.X"}
+    """
+    new_ip = req.get("raptor_ip", "")
+    result = await asyncio.to_thread(camera_control.reconnect, new_ip)
+    return result
+
+
+@app.post("/api/camera/probe")
+async def camera_probe(
+    req: dict = Body(...),
+    _user = Depends(get_current_user),
+):
+    """
+    Probe an IP for ONVIF endpoints without changing the ADB config.
+    Body: {"ip": "192.168.1.X"}
+    Returns: {available: bool, url?: str}
+    """
+    ip = req.get("ip", "").strip()
+    if not ip:
+        return {"available": False, "message": "No IP provided"}
+    result = await asyncio.to_thread(camera_control.probe_onvif, ip)
+    return result
+
 
 @app.post("/api/attendance/burst")
 async def process_burst(
     files: List[UploadFile] = File(...),
+    zone_metadata: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     _user = Depends(get_current_user),
 ):
     """
-    Accept 5 JPEG frames captured 400ms apart from the smartboard camera.
-    Runs SCRFD detection + GhostFaceNet recognition on each frame.
-    Uses set-based voting (3-of-5 frames) to confirm presence.
-    Returns confirmed students with vote counts.
+    Accept JPEG frames from the col×row scanning grid.
+    zone_metadata: JSON array (one entry per frame) with col, row, center_x_pct,
+                   center_y_pct, zoom_factor, zoom_method, is_wide fields.
+    Routes to process_burst_smart() when zone_metadata is provided,
+    falls back to legacy process_burst() otherwise.
     """
+    import json as _json
     frames = []
     for f in files:
         data = np.frombuffer(await f.read(), np.uint8)
@@ -364,7 +492,18 @@ async def process_burst(
             frames.append(img)
     if not frames:
         raise HTTPException(400, "No frames decoded")
-    result = await asyncio.to_thread(pipeline.process_burst, frames, db)
+
+    meta = None
+    if zone_metadata:
+        try:
+            meta = _json.loads(zone_metadata)
+        except Exception:
+            meta = None
+
+    if meta and len(meta) == len(frames):
+        result = await asyncio.to_thread(pipeline.process_burst_smart, frames, db, meta)
+    else:
+        result = await asyncio.to_thread(pipeline.process_burst, frames, db)
     return result
 
 

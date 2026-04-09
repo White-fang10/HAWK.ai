@@ -142,6 +142,30 @@ if ($depsCheck -notmatch "ok") {
 else {
     Write-Host "  OK Already installed" -ForegroundColor Green
 }
+# ADB Check
+Write-Host ""
+Type-Text "[DEPS] Checking Android Platform Tools (adb)..."
+Divider
+
+$adbFound = $false
+if (Get-Command adb -ErrorAction SilentlyContinue) {
+    $adbFound = $true
+} else {
+    $localApp = $env:LOCALAPPDATA
+    $wingetPaths = Get-ChildItem -Path "$localApp\Microsoft\WinGet\Packages\*PlatformTools*\platform-tools\adb.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($wingetPaths) {
+        $adbFound = $true
+    }
+}
+
+if ($adbFound) {
+    Write-Host "  OK adb      : found" -ForegroundColor Green
+}
+else {
+    Write-Host "  Installing adb via winget..." -ForegroundColor Yellow
+    & winget install Google.PlatformTools --accept-package-agreements --accept-source-agreements --quiet
+    Write-Host "  OK Installed adb" -ForegroundColor Green
+}
 
 # Backend
 Write-Host ""

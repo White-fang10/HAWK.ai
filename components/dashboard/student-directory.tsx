@@ -135,28 +135,27 @@ function WebcamCapture({ onCapture }: { onCapture: (files: File[]) => void }) {
       const n = capturedFiles.length + 1
       const file = new File([blob], `capture_${n}.jpg`, { type: "image/jpeg" })
       const url = URL.createObjectURL(blob)
-      setCapturedFiles(prev => {
-        const next = [...prev, file]
-        onCapture(next)
-        return next
-      })
+      // Compute next array first, then setState and notify parent separately
+      // (calling onCapture inside a setState updater is illegal — causes
+      //  "setState during render" error in React strict mode)
+      const nextFiles = [...capturedFiles, file]
+      setCapturedFiles(nextFiles)
       setCapturedPreviews(prev => [...prev, url])
+      onCapture(nextFiles)
       setIsCapturing(false)
     }, "image/jpeg", 0.95)  // high quality — backend quality filter will also check sharpness
   }, [capturedFiles, onCapture])
 
   // ── Remove one photo ──────────────────────────────────────────────────────
   const removePhoto = useCallback((idx: number) => {
-    setCapturedFiles(prev => {
-      const next = prev.filter((_, i) => i !== idx)
-      onCapture(next)
-      return next
-    })
+    const nextFiles = capturedFiles.filter((_, i) => i !== idx)
+    setCapturedFiles(nextFiles)
+    onCapture(nextFiles)
     setCapturedPreviews(prev => {
       URL.revokeObjectURL(prev[idx])
       return prev.filter((_, i) => i !== idx)
     })
-  }, [onCapture])
+  }, [capturedFiles, onCapture])
 
   // ── Reset all ─────────────────────────────────────────────────────────────
   const reset = useCallback(() => {

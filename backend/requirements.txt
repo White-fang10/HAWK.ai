@@ -15,8 +15,9 @@ numpy<2.0.0
 openpyxl==3.1.5
 fpdf2==2.7.9
 requests>=2.31.0
-# Security (Phase 0)
+# Security
 bcrypt>=4.0.1
 python-jose[cryptography]>=3.3.0
-# Note: torch, torchvision, timm, ultralytics removed — replaced by onnxruntime + insightface
-# Note: faiss-cpu removed — replaced with NumPy cosine similarity (sufficient for ≤60 students)
+# Note: torch, torchvision, timm, ultralytics, realesrgan, basicsr removed
+# Enhancement is handled by the pure-OpenCV pipeline in vision/enhancer.py
+# Note: faiss-cpu removed — NumPy cosine similarity is sufficient for ≤60 students

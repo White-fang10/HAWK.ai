@@ -10,18 +10,22 @@ Hawk.ai is an advanced, automated classroom attendance system powered by facial 
 - **Network Deployment Support**: Capable of ingesting RTSP streams (via MediaMTX and FFmpeg) for deployment over LAN in real-world classroom environments.
 - **Modern UI/UX**: A responsive, modern user interface built with Next.js and Tailwind CSS featuring detailed dashboards and easy navigation.
 
-## Tech Stack
-### Frontend
-- Next.js (React 19)
-- Tailwind CSS 4
-- Radix UI Components
-- Recharts (for Data Visualization)
-- Lucide React (Icons)
+## Technology Stack & Its Purpose
 
-### Backend
-- FastAPI (Python)
-- OpenCV / Deep Learning pipelines (for Face Detection & Recognition)
-- Uvicorn (ASGI server)
+### Frontend Technologies
+- **Next.js (React 19)**: Modern React framework used for server-side rendering and static site generation, ensuring fast load times, SEO optimization, and robust routing.
+- **Tailwind CSS 4**: Utility-first CSS framework enabling rapid UI prototyping and ensuring a responsive, modern design without writing custom CSS.
+- **Radix UI Components**: Unstyled, accessible component primitives (dialogs, dropdowns, etc.) that provide the foundation for custom-styled, highly accessible UI elements.
+- **Recharts**: Composable charting library used to build the dynamic data visualization dashboards for attendance statistics and historical tracking.
+- **Lucide React**: Comprehensive vector icon library providing clean, consistent imagery throughout the dashboard interface.
+
+### Backend Technologies
+- **FastAPI (Python)**: High-performance web framework used for building the RESTful API. It provides automatic interactive API documentation and fast asynchronous request routing.
+- **InsightFace & ONNXRuntime**: State-of-the-art deep learning pipeline used for robust face detection and recognition. ONNXRuntime optimizes model inference speed for real-time processing.
+- **OpenCV**: Computer vision library used for capturing RTSP streams, handling image frame transformations, and overlaying real-time bounding boxes and names.
+- **SQLAlchemy (ORM)**: SQL toolkit and Object-Relational Mapper that manages the database schema, student profiles, and attendance records securely and efficiently.
+- **Uvicorn**: Lightning-fast ASGI server used to serve the FastAPI application, enabling concurrent handling of API requests and continuous video stream processing.
+- **NumPy**: Crucial for high-speed matrix multiplications used when comparing generated face embeddings against the student database via cosine similarity.
 
 ## Getting Started
 

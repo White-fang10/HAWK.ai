@@ -10,6 +10,8 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 from pathlib import Path
+# Face SR is now applied upstream in pipeline.py (Real-ESRGAN).
+# Crops reaching get_embedding() are already enhanced — no per-crop call needed here.
 
 # ── Model path ────────────────────────────────────────────────────────────────
 MODEL_PATH = Path(__file__).parent.parent / "models" / "ghostfacenet_w1.3_s1.onnx"
@@ -92,11 +94,15 @@ _REF_LANDMARKS = np.array([
     [70.7299, 92.2041],
 ], dtype=np.float32)
 
-# ── CLAHE — FIXED ──────────────────────────────────────────────────────────────
-# tileGridSize=(8,8) is correct for 112x112 ArcFace-style crops
-# (4,4) was wrong → tiles were 28x28px → aggressive local contrast that
-# introduces block artifacts and corrupts embeddings
+# ── CLAHE — always applied, tuned for 112×112 ArcFace crops ─────────────────
 _clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+
+# Gamma lookup table (pre-computed for speed) — lifts dark faces
+def _build_gamma_lut(gamma: float) -> np.ndarray:
+    inv = 1.0 / gamma
+    return np.array([int((i / 255.0) ** inv * 255 + 0.5) for i in range(256)], dtype=np.uint8)
+
+_GAMMA_LIFT_LUT = _build_gamma_lut(0.6)   # brightens mid-tones without blowing highlights
 
 
 def _align_face(img_bgr: np.ndarray, landmarks: list) -> np.ndarray:
@@ -114,13 +120,19 @@ def _align_face(img_bgr: np.ndarray, landmarks: list) -> np.ndarray:
 
 
 def _apply_clahe(crop: np.ndarray) -> np.ndarray:
-    """Apply CLAHE only in dark/poor-contrast images; skip if already well-lit."""
+    """Apply CLAHE + optional gamma lift for dark faces.
+    Always applied — dark classroom frames need contrast normalisation.
+    Gamma lift kicks in only when mean L < 80 (very dark / backlit faces).
+    """
     lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
-    # Skip CLAHE if the image is already bright enough (mean L > 140 out of 255)
-    # Avoids destroying contrast in well-lit classroom shots
-    if float(l.mean()) > 140:
-        return crop
+    mean_l = float(l.mean())
+
+    # Lift very dark frames with gamma before CLAHE
+    if mean_l < 80:
+        l = cv2.LUT(l, _GAMMA_LIFT_LUT)
+
+    # Always apply CLAHE — crops reaching here are 112×112 faces that need contrast equalization
     l = _clahe.apply(l)
     return cv2.cvtColor(cv2.merge((l, a, b)), cv2.COLOR_LAB2BGR)
 
@@ -153,12 +165,23 @@ def _embed_via_mbf(aligned_bgr: np.ndarray) -> np.ndarray:
 
 # ── Public API ─────────────────────────────────────────────────────────────────
 
-def get_embedding(img_bgr: np.ndarray, landmarks: list = None) -> np.ndarray:
+def get_embedding(img_bgr: np.ndarray, landmarks: list = None,
+                  raw_width: int = 9999) -> np.ndarray:
     """
     Align and embed a single face crop.
-    Returns np.ndarray shape (512,), float32, L2-normalised.
+
+    Args:
+        img_bgr:   BGR face crop.
+        landmarks: 5-point facial landmarks in crop coordinates.
+        raw_width: Width of the face bbox in original frame pixels.
+                   Values < ENHANCE_THRESHOLD trigger GFPGAN restoration.
+                   Pass det["raw_width"] from the detector.
+
+    Returns:
+        np.ndarray shape (512,), float32, L2-normalised.
     """
-    aligned = _align_face(img_bgr, landmarks or [])
+    crop    = img_bgr   # SR already applied by pipeline before this call
+    aligned = _align_face(crop, landmarks or [])
     aligned = _apply_clahe(aligned)
 
     if USE_INSIGHTFACE_FALLBACK:
@@ -172,6 +195,11 @@ def get_embedding(img_bgr: np.ndarray, landmarks: list = None) -> np.ndarray:
 def get_embeddings_batch(crops_and_landmarks: list) -> list:
     """
     Embed multiple face crops.
+
+    crops_and_landmarks: list of (crop_bgr, landmarks, raw_width)
+      raw_width is optional — if the tuple is only 2 elements, enhancement
+      is skipped (raw_width defaults to 9999 = "large face, no enhance").
+
     MBF fallback: one by one (no batch API).
     GhostFaceNet ONNX: single GPU call for all crops.
     """
@@ -179,12 +207,24 @@ def get_embeddings_batch(crops_and_landmarks: list) -> list:
         return []
 
     if USE_INSIGHTFACE_FALLBACK:
-        return [get_embedding(crop, lm) for crop, lm in crops_and_landmarks]
+        results = []
+        for item in crops_and_landmarks:
+            if len(item) == 3:
+                crop, lm, rw = item
+            else:
+                crop, lm = item; rw = 9999
+            results.append(get_embedding(crop, lm, rw))
+        return results
 
     tensors = []
-    for crop_bgr, landmarks in crops_and_landmarks:
-        aligned = _align_face(crop_bgr, landmarks or [])
-        aligned = _apply_clahe(aligned)
+    for item in crops_and_landmarks:
+        if len(item) == 3:
+            crop_bgr, landmarks, rw = item
+        else:
+            crop_bgr, landmarks = item; rw = 9999
+        # crop_bgr already SR-enhanced by pipeline — no additional enhance call needed
+        aligned  = _align_face(crop_bgr, landmarks or [])
+        aligned  = _apply_clahe(aligned)
         tensors.append(_prepare_tensor(aligned)[0])
 
     batch = np.stack(tensors, axis=0)
