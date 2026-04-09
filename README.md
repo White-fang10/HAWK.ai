@@ -4,7 +4,10 @@ Hawk.ai is an advanced, automated classroom attendance system powered by facial 
 
 ## Features
 - **Real-Time Facial Recognition**: Accurately detects and identifies students from a live camera feed.
+- **Burst Capture Mode**: Optimized for smartboard integration with 5-frame burst capture for enhanced recognition accuracy.
 - **Live Monitoring Dashboard**: Provides a real-time view of the classroom with face bounding box overlays and attendance status, optimized for performance.
+- **Smartboard Integration**: Native support for Raptor 65 smartboards with camera control (ADB/ONVIF), optical zoom, and tap-to-focus capabilities.
+- **Camera Configuration**: Dedicated interface for setting up and testing camera connections, including ADB and ONVIF protocols.
 - **Admin Dashboard**: Comprehensive interfaces for managing student data, viewing attendance statistics with dynamic data visualization, and monitoring system health.
 - **Student Data Management**: Easy-to-use interface to register new students, organize them by classroom, update their profiles, and manage their face data.
 - **Network Deployment Support**: Capable of ingesting RTSP streams (via MediaMTX and FFmpeg) for deployment over LAN in real-world classroom environments.
@@ -26,6 +29,7 @@ Hawk.ai is an advanced, automated classroom attendance system powered by facial 
 - **SQLAlchemy (ORM)**: SQL toolkit and Object-Relational Mapper that manages the database schema, student profiles, and attendance records securely and efficiently.
 - **Uvicorn**: Lightning-fast ASGI server used to serve the FastAPI application, enabling concurrent handling of API requests and continuous video stream processing.
 - **NumPy**: Crucial for high-speed matrix multiplications used when comparing generated face embeddings against the student database via cosine similarity.
+- **ADB & ONVIF Integration**: Camera control protocols for smartboard integration, enabling optical zoom, PTZ controls, and automated camera management.
 
 ## Getting Started
 
@@ -34,6 +38,7 @@ Hawk.ai is an advanced, automated classroom attendance system powered by facial 
 - Node.js (v18+) & pnpm / npm
 - FFmpeg (for RTSP stream handling)
 - MediaMTX (for RTSP stream hosting - Optional depending on camera setup)
+- ADB (Android Debug Bridge) for smartboard camera control (optional)
 
 ### Installation
 
@@ -64,6 +69,13 @@ Hawk.ai is an advanced, automated classroom attendance system powered by facial 
    # or if using pnpm
    pnpm install
    ```
+
+4. **Smartboard Setup (Optional)**
+   For Raptor 65 smartboard integration:
+   - Install ADB: Download from https://developer.android.com/tools/releases/platform-tools
+   - Enable USB Debugging on the smartboard (Settings → Developer Options)
+   - Set environment variable: `RAPTOR_IP=192.168.1.X` in backend/.env
+   - Alternatively, configure via the web interface at `/smartboard/camera-config`
 
 ### Running the Application
 
@@ -98,6 +110,8 @@ Alternatively, you can start them manually:
 Once started, the services will be available at:
 - **Frontend Dashboard**: `http://localhost:3000`
 - **Backend API**: `http://localhost:8000`
+- **Smartboard Interface**: `http://localhost:3000/smartboard`
+- **Camera Configuration**: `http://localhost:3000/smartboard/camera-config`
 
 ## Project Structure
 - `/app`, `/components`, `/hooks`, `/lib`, `/public`, `/styles`: Next.js frontend application structure.
