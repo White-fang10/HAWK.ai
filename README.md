@@ -1,124 +1,317 @@
-# Hawk.ai - Automated Classroom Attendance System
+# 🦅 Hawk.ai
 
-Hawk.ai is an advanced, automated classroom attendance system powered by facial recognition technology. It streamlines the attendance process by detecting and identifying students in real-time, offering a seamless experience for both educators and administrators.
+### *The Future of Intelligent Classroom Attendance.*
 
-## Features
-- **Real-Time Facial Recognition**: Accurately detects and identifies students from a live camera feed.
-- **Burst Capture Mode**: Optimized for smartboard integration with 5-frame burst capture for enhanced recognition accuracy.
-- **Live Monitoring Dashboard**: Provides a real-time view of the classroom with face bounding box overlays and attendance status, optimized for performance.
-- **Smartboard Integration**: Native support for Raptor 65 smartboards with camera control (ADB/ONVIF), optical zoom, and tap-to-focus capabilities.
-- **Camera Configuration**: Dedicated interface for setting up and testing camera connections, including ADB and ONVIF protocols.
-- **Admin Dashboard**: Comprehensive interfaces for managing student data, viewing attendance statistics with dynamic data visualization, and monitoring system health.
-- **Student Data Management**: Easy-to-use interface to register new students, organize them by classroom, update their profiles, and manage their face data.
-- **Network Deployment Support**: Capable of ingesting RTSP streams (via MediaMTX and FFmpeg) for deployment over LAN in real-world classroom environments.
-- **Modern UI/UX**: A responsive, modern user interface built with Next.js and Tailwind CSS featuring detailed dashboards and easy navigation.
+<p align="center">
 
-## Technology Stack & Its Purpose
+**Transforming classrooms with AI-powered facial recognition, real-time analytics, and smartboard automation.**
 
-### Frontend Technologies
-- **Next.js (React 19)**: Modern React framework used for server-side rendering and static site generation, ensuring fast load times, SEO optimization, and robust routing.
-- **Tailwind CSS 4**: Utility-first CSS framework enabling rapid UI prototyping and ensuring a responsive, modern design without writing custom CSS.
-- **Radix UI Components**: Unstyled, accessible component primitives (dialogs, dropdowns, etc.) that provide the foundation for custom-styled, highly accessible UI elements.
-- **Recharts**: Composable charting library used to build the dynamic data visualization dashboards for attendance statistics and historical tracking.
-- **Lucide React**: Comprehensive vector icon library providing clean, consistent imagery throughout the dashboard interface.
+*No roll calls. No manual attendance. Just intelligent automation.*
 
-### Backend Technologies
-- **FastAPI (Python)**: High-performance web framework used for building the RESTful API. It provides automatic interactive API documentation and fast asynchronous request routing.
-- **InsightFace & ONNXRuntime**: State-of-the-art deep learning pipeline used for robust face detection and recognition. ONNXRuntime optimizes model inference speed for real-time processing.
-- **OpenCV**: Computer vision library used for capturing RTSP streams, handling image frame transformations, and overlaying real-time bounding boxes and names.
-- **SQLAlchemy (ORM)**: SQL toolkit and Object-Relational Mapper that manages the database schema, student profiles, and attendance records securely and efficiently.
-- **Uvicorn**: Lightning-fast ASGI server used to serve the FastAPI application, enabling concurrent handling of API requests and continuous video stream processing.
-- **NumPy**: Crucial for high-speed matrix multiplications used when comparing generated face embeddings against the student database via cosine similarity.
-- **ADB & ONVIF Integration**: Camera control protocols for smartboard integration, enabling optical zoom, PTZ controls, and automated camera management.
+</p>
 
-## Getting Started
+---
 
-### Prerequisites
-- Python 3.8+
-- Node.js (v18+) & pnpm / npm
-- FFmpeg (for RTSP stream handling)
-- MediaMTX (for RTSP stream hosting - Optional depending on camera setup)
-- ADB (Android Debug Bridge) for smartboard camera control (optional)
+## 🚀 Overview
 
-### Installation
+**Hawk.ai** is an enterprise-grade AI attendance platform that automatically detects, recognizes, and records student attendance using real-time facial recognition.
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd hawk.ai
-   ```
+Designed for modern educational institutions, Hawk.ai combines **Computer Vision**, **Artificial Intelligence**, and **Smart Classroom Integration** into one seamless platform.
 
-2. **Backend Setup**
-   Ensure you have a virtual environment set up and the required Python packages installed.
-   ```bash
-   cd backend
-   python -m venv venv
-   # Activate the virtual environment:
-   # On Windows:
-   .\venv\Scripts\activate
-   # On Linux/macOS:
-   # source venv/bin/activate
-   pip install -r requirements.txt
-   cd ..
-   ```
+Whether it's a single classroom or an entire campus, Hawk.ai eliminates manual attendance while providing educators with live insights and powerful analytics.
 
-3. **Frontend Setup**
-   Install the necessary Node.js dependencies.
-   ```bash
-   npm install
-   # or if using pnpm
-   pnpm install
-   ```
+---
 
-4. **Smartboard Setup (Optional)**
-   For Raptor 65 smartboard integration:
-   - Install ADB: Download from https://developer.android.com/tools/releases/platform-tools
-   - Enable USB Debugging on the smartboard (Settings → Developer Options)
-   - Set environment variable: `RAPTOR_IP=192.168.1.X` in backend/.env
-   - Alternatively, configure via the web interface at `/smartboard/camera-config`
+# ✨ Core Features
 
-### Running the Application
+## 🎯 AI Face Recognition
 
-To start both the FastAPI backend and Next.js frontend concurrently, you can use the provided PowerShell helper scripts on Windows:
+* Real-time student detection
+* High-accuracy face recognition
+* Instant attendance recording
+* Multi-face recognition support
 
-**For Local Development:**
-```powershell
-.\start-hawk.ps1
+---
+
+## 📸 Burst Recognition Engine
+
+Capture multiple frames within milliseconds for improved recognition accuracy.
+
+✔ 5-Frame Burst Capture
+
+✔ Motion Compensation
+
+✔ Enhanced Recognition Confidence
+
+---
+
+## 🖥 Live Monitoring Dashboard
+
+Monitor classrooms in real time with an interactive dashboard.
+
+Features include:
+
+* Live video feed
+* Face bounding boxes
+* Student identification
+* Attendance status
+* Recognition confidence
+* System health monitoring
+
+---
+
+## 📚 Smart Classroom Integration
+
+Built specifically for modern smart classrooms.
+
+Supports:
+
+* 📺 Raptor 65 Smartboards
+* 📷 PTZ Camera Control
+* 🔍 Optical Zoom
+* 🎯 Tap-to-Focus
+* 📡 ADB Integration
+* 🌐 ONVIF Cameras
+
+---
+
+## 👨‍🏫 Administrative Portal
+
+A centralized dashboard for managing the complete classroom ecosystem.
+
+* Student Registration
+* Classroom Management
+* Attendance Reports
+* Analytics Dashboard
+* Face Dataset Management
+* Camera Configuration
+* Device Monitoring
+
+---
+
+## 📊 Intelligent Analytics
+
+Gain meaningful insights through interactive dashboards.
+
+Track:
+
+* Daily Attendance
+* Monthly Reports
+* Student Attendance %
+* Classroom Statistics
+* Recognition Accuracy
+* System Performance
+
+---
+
+## 🌐 Network Deployment Ready
+
+Deploy Hawk.ai across an institution with ease.
+
+Supports:
+
+* RTSP Streams
+* MediaMTX
+* FFmpeg
+* LAN Deployment
+* Multiple Camera Sources
+
+---
+
+# ⚙ Technology Stack
+
+## 🎨 Frontend
+
+| Technology      | Purpose                |
+| --------------- | ---------------------- |
+| ⚛ Next.js 15    | Modern React Framework |
+| 🎨 Tailwind CSS | Responsive UI          |
+| 🧩 Radix UI     | Accessible Components  |
+| 📈 Recharts     | Analytics Dashboard    |
+| 🎯 Lucide Icons | Modern Iconography     |
+
+---
+
+## 🧠 AI & Backend
+
+| Technology      | Purpose                 |
+| --------------- | ----------------------- |
+| ⚡ FastAPI       | REST API                |
+| 👁 InsightFace  | Face Recognition        |
+| 🚀 ONNX Runtime | High-Speed AI Inference |
+| 📸 OpenCV       | Image Processing        |
+| 🗄 SQLAlchemy   | Database ORM            |
+| 🔢 NumPy        | Face Embeddings         |
+| 🌐 Uvicorn      | ASGI Server             |
+
+---
+
+## 🔌 Smartboard Integration
+
+* ADB Camera Control
+* ONVIF Protocol
+* Optical Zoom
+* PTZ Support
+* Automatic Camera Configuration
+
+---
+
+# 🏗 System Architecture
+
+```text
+        Camera / Smartboard
+                 │
+                 ▼
+        Live Video Stream
+                 │
+                 ▼
+     Face Detection (InsightFace)
+                 │
+                 ▼
+      Face Embedding Generation
+                 │
+                 ▼
+     Cosine Similarity Matching
+                 │
+                 ▼
+    Attendance Verification Engine
+                 │
+                 ▼
+      Database + Analytics Dashboard
 ```
 
-**For Local Area Network (LAN) Deployment:**
-```powershell
-.\start-hawk-lan.ps1
+---
+
+# 🚀 Quick Start
+
+## 1️⃣ Clone Repository
+
+```bash
+git clone <repository-url>
+
+cd hawk.ai
 ```
 
-Alternatively, you can start them manually:
+---
 
-1. **Start Backend**:
-   ```bash
-   cd backend
-   .\venv\Scripts\activate
-   python -m uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
+## 2️⃣ Backend Setup
 
-2. **Start Frontend**:
-   ```bash
-   npm run dev
-   # or
-   pnpm run dev
-   ```
+```bash
+cd backend
 
-Once started, the services will be available at:
-- **Frontend Dashboard**: `http://localhost:3000`
-- **Backend API**: `http://localhost:8000`
-- **Smartboard Interface**: `http://localhost:3000/smartboard`
-- **Camera Configuration**: `http://localhost:3000/smartboard/camera-config`
+python -m venv venv
 
-## Project Structure
-- `/app`, `/components`, `/hooks`, `/lib`, `/public`, `/styles`: Next.js frontend application structure.
-- `/backend`: FastAPI backend source, inference models, and API endpoints.
-- `/admin dashboard`: Administrative UI assets and components.
-- `start-hawk.ps1`: Startup script for minimal local setup.
-- `start-hawk-lan.ps1`: Startup shell script tailored for LAN environments.
+# Windows
+.\venv\Scripts\activate
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+pip install -r requirements.txt
+```
+
+Run Backend
+
+```bash
+python -m uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+---
+
+## 3️⃣ Frontend Setup
+
+```bash
+npm install
+
+npm run dev
+```
+
+or
+
+```bash
+pnpm install
+
+pnpm run dev
+```
+
+---
+
+# 🌐 Application Endpoints
+
+| Service          | URL                                            |
+| ---------------- | ---------------------------------------------- |
+| 🌍 Frontend      | http://localhost:3000                          |
+| ⚡ Backend API    | http://localhost:8000                          |
+| 📺 Smartboard    | http://localhost:3000/smartboard               |
+| 📷 Camera Config | http://localhost:3000/smartboard/camera-config |
+
+---
+
+# 📁 Project Structure
+
+```text
+hawk.ai
+│
+├── app/
+├── components/
+├── hooks/
+├── lib/
+├── public/
+├── styles/
+│
+├── backend/
+│   ├── AI Models
+│   ├── FastAPI
+│   ├── Face Recognition
+│   └── API Routes
+│
+├── admin-dashboard/
+│
+├── start-hawk.ps1
+├── start-hawk-lan.ps1
+│
+└── README.md
+```
+
+---
+
+# 💡 Why Hawk.ai?
+
+Traditional attendance systems waste valuable classroom time.
+
+Hawk.ai replaces manual roll calls with intelligent automation powered by Computer Vision and Artificial Intelligence.
+
+✅ Hands-Free Attendance
+
+✅ Real-Time Recognition
+
+✅ Smartboard Integration
+
+✅ Enterprise Dashboard
+
+✅ AI Analytics
+
+✅ High-Speed Processing
+
+✅ Campus Ready
+
+---
+
+# 🎯 Built For
+
+🏫 Schools
+
+🎓 Colleges
+
+🏢 Universities
+
+💼 Training Centers
+
+🏛 Educational Institutions
+
+---
+
+# 🔮 Vision
+
+*"To redefine classroom management through Artificial Intelligence, enabling educators to focus on teaching while Hawk.ai takes care of attendance with precision, speed, and intelligence."*
+
+---
+
+## ⭐ If you found this project interesting, consider giving it a star and supporting its development!
